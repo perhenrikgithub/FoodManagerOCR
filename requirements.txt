@@ -1,1 +1,2 @@
 pytesseract==1.7.1
+openai==0.28.1
