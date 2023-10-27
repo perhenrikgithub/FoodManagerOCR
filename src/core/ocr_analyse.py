@@ -8,21 +8,15 @@ from PIL import Image
 from hidden_constants import OPENAI_API_KEY
 
 
-class Items(NamedTuple):
+class Item(NamedTuple):
     start_text: str
     end_text: str
 
 
 STORE_DICT = {
-    "rema 1000": Items(start_text="serienr", end_text="sum "),
-    "coop": Items(start_text="ref", end_text="totalt "),
-    "extra": Items(start_text="salgskvittering", end_text="totalt "),
-}
-
-
-TEST_RECEIPTS = {
-    "rema": "src/receipts/receipt.jpg",
-    "obs": "src/receipts/coop_obs.jpeg",
+    "rema 1000": Item(start_text="serienr", end_text="sum "),
+    "coop": Item(start_text="ref", end_text="totalt "),
+    "extra": Item(start_text="salgskvittering", end_text="totalt "),
 }
 
 
@@ -62,17 +56,19 @@ def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
     )
     result = completion.choices[0].message.content  # type: ignore
-    result = ast.literal_eval(result[result.find("{") :])
-    if isinstance(result, dict):
-        result = result[list(result.keys())[0]]
+    result = ast.literal_eval(result[result.find("[") : result.rfind("]") + 1])
     print(result)
     return result
 
 
 def main() -> None:
+    test_receipts = {
+        "rema": "src/receipts/receipt.jpg",
+        "obs": "src/receipts/coop_obs.jpeg",
+    }
     print(
         timeit.timeit(
-            "make_gpt_request(TEST_RECEIPTS['rema'])",
+            "make_gpt_request(test_receipts['rema'])",
             globals=globals(),
             number=1,
         )
