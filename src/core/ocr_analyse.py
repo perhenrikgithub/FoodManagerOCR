@@ -53,7 +53,7 @@ def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
     )
     openai.api_key = OPENAI_API_KEY
     completion = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo-instruct",
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
     )
     result = completion.choices[0].message.content  # type: ignore
