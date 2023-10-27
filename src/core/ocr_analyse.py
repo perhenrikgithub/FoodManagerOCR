@@ -5,7 +5,7 @@ import pytesseract
 import openai
 from PIL import Image
 
-from constants import OPENAI_API_KEY
+from hidden_constants import OPENAI_API_KEY
 
 
 class Items(NamedTuple):
@@ -15,8 +15,14 @@ class Items(NamedTuple):
 
 STORE_DICT = {
     "rema 1000": Items(start_text="serienr", end_text="sum "),
-    "coop": Items(start_text="ref", end_text="totalt"),
-    "extra": Items(start_text="salgskvittering", end_text="totalt"),
+    "coop": Items(start_text="ref", end_text="totalt "),
+    "extra": Items(start_text="salgskvittering", end_text="totalt "),
+}
+
+
+TEST_RECEIPTS = {
+    "rema": "src/receipts/receipt.jpg",
+    "obs": "src/receipts/coop_obs.jpeg",
 }
 
 
@@ -26,15 +32,14 @@ def _export_image_text(image_path: str) -> str:
 
 
 def _make_gpt_prompt(image_path: str) -> str:
-    text = _export_image_text(image_path)
-    lines = text.split("\n")
+    lines = _export_image_text(image_path).split("\n")
     store = STORE_DICT[lines[0]]
 
     start_index = 0
     end_index = 0
 
     for i, line in enumerate(lines):
-        if not start_index and (line.startswith(store.start_text)):
+        if not start_index and line.startswith(store.start_text):
             start_index = i + 1
         elif not end_index and line.startswith(store.end_text):
             end_index = i
@@ -53,23 +58,25 @@ def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
     )
     openai.api_key = OPENAI_API_KEY
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-instruct",
+        model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
     )
     result = completion.choices[0].message.content  # type: ignore
+    result = ast.literal_eval(result[result.find("{") :])
+    if isinstance(result, dict):
+        result = result[list(result.keys())[0]]
     print(result)
-    return ast.literal_eval(result)
+    return result
 
 
 def main() -> None:
     print(
         timeit.timeit(
-            "print(make_gpt_request('src/receipts/receipt.jpg'))",
+            "make_gpt_request(TEST_RECEIPTS['rema'])",
             globals=globals(),
             number=1,
         )
     )
-    # print(make_gpt_request("src/receipts/coop_obs.jpeg"))
 
 
 if __name__ == "__main__":
