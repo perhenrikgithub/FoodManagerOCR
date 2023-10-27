@@ -15,8 +15,9 @@ class Item(NamedTuple):
 
 STORE_DICT = {
     "rema 1000": Item(start_text="serienr", end_text="sum "),
-    "coop": Item(start_text="ref", end_text="totalt "),
-    "extra": Item(start_text="salgskvittering", end_text="totalt "),
+    "coop obs": Item(start_text="ref", end_text="totalt "),
+    "coop extra": Item(start_text="salgskvittering", end_text="totalt "),
+    "unknown": Item(start_text="unknown", end_text="unknown"),
 }
 
 
@@ -27,10 +28,21 @@ def _export_image_text(image_path: str) -> str:
 
 def _make_gpt_prompt(image_path: str) -> str:
     lines = _export_image_text(image_path).split("\n")
-    store = STORE_DICT[lines[0]]
+
+    store = lines[0]
+    if "extra" in store:
+        store = "coop extra"
+    elif "obs" in store:
+        store = "coop obs"
+    elif "rema" in store:
+        store = "rema 1000"
+    else:
+        store = "unknown"
+
+    store = STORE_DICT[store]
 
     start_index = 0
-    end_index = 0
+    end_index = len(lines)
 
     for i, line in enumerate(lines):
         if not start_index and line.startswith(store.start_text):
@@ -43,18 +55,20 @@ def _make_gpt_prompt(image_path: str) -> str:
 
 
 def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
-    prompt = _make_gpt_prompt(image_path)
     message_prefix = (
         "Lag et JSON-datasett fra følgende matvarer. Inkluder matvare, "
         "antall (standard=1), vekt (standard=N/A) og kategori (kjøleskap/"
-        "tørrvare/fryser). Ignorer pris. Fjern skrivefeil og generaliser "
+        "tørrvare/fryser). Ignorer pris. Rett opp i skrivefeil og generaliser "
         "navnet på matvaren."
     )
+    prompt = _make_gpt_prompt(image_path)
+
     openai.api_key = OPENAI_API_KEY
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
     )
+
     result = completion.choices[0].message.content  # type: ignore
     result = ast.literal_eval(result[result.find("[") : result.rfind("]") + 1])
     print(result)
@@ -63,13 +77,14 @@ def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
 
 def main() -> None:
     test_receipts = {
-        "rema": "src/receipts/receipt.jpg",
+        "rema": "src/receipts/rema_1000.jpg",
         "obs": "src/receipts/coop_obs.jpeg",
+        "extra": "src/receipts/coop_extra.jpg",
     }
     print(
         timeit.timeit(
-            "make_gpt_request(test_receipts['rema'])",
-            globals=globals(),
+            "make_gpt_request(test_receipts['extra'])",
+            globals=globals() | locals(),
             number=1,
         )
     )
