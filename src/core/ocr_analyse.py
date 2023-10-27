@@ -5,9 +5,7 @@ import pytesseract
 import openai
 from PIL import Image
 
-
-OPENAI_API_KEY = "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"
-# OPENAI_API_KEY = ""
+from constants import OPENAI_API_KEY
 
 
 class Items(NamedTuple):
