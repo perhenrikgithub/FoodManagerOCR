@@ -36,7 +36,7 @@ async function makeGPTRequest(imagePath) {
     const result = chatCompletion.choices[0].message.content;
     // console.log(result);
 
-    const processedResult = JSON.parse(result.replace('\'', '"'));
+    const processedResult = JSON.parse(result.replace(/'/g, '"'));
     return processedResult;
 }
 
