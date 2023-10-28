@@ -5,19 +5,6 @@ from typing import NamedTuple
 import pytesseract
 import openai
 from PIL import Image
-from os import getenv
-
-
-try:
-    from hidden_constants import OPENAI_API_KEY
-    openai.api_key = OPENAI_API_KEY
-
-except ModuleNotFoundError:
-    from dotenv import load_dotenv
-    load_dotenv()
-    openai.api_key = getenv("OPENAI_API_KEY")
-
-pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/Cellar/tesseract/5.3.3/bin/tesseract"
 
 
 class Item(NamedTuple):
@@ -79,15 +66,15 @@ def make_gpt_request(image_path: str) -> None:
         "opp i skrivefeil og generaliser navnet på matvaren."
     )
     prompt = _make_gpt_prompt(image_path)
-
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
+        temperature=0.0,
     )
-
-    result = completion.choices[0].message.content  # type: ignore
-    result = ast.literal_eval(result[result.find("{"): result.rfind("}") + 1])
-    print(result)
+    result_str = completion.choices[0].message.content
+    result = ast.literal_eval(
+        result_str[result_str.find("{") : result_str.rfind("}") + 1]
+    )
     dump_gpt_request(result)
 
 
@@ -105,6 +92,7 @@ def _write_to_json(articles: dict[str, str | int]) -> None:
 
 
 def main() -> None:
+    _write_to_json({})
     test_receipts = {
         "rema": "rema_1000.jpg",
         "obs": "coop_obs.jpeg",
