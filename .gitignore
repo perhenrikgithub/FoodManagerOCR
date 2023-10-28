@@ -2,6 +2,7 @@
 
 # constants
 hidden_constants.py
+.env
 
 # dependencies
 /node_modules
