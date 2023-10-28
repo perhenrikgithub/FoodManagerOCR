@@ -1,4 +1,5 @@
 import ast
+import json
 import timeit
 from typing import NamedTuple
 import pytesseract
@@ -17,7 +18,7 @@ STORE_DICT = {
     "rema 1000": Item(start_text="serienr", end_text="sum "),
     "coop obs": Item(start_text="ref", end_text="totalt "),
     "coop extra": Item(start_text="salgskvittering", end_text="totalt "),
-    "unknown": Item(start_text="unknown", end_text="unknown"),
+    "unknown": Item(start_text="unknown", end_text="unknown "),
 }
 
 
@@ -51,16 +52,14 @@ def _make_gpt_prompt(image_path: str) -> str:
             end_index = i
             break
 
-    return ", ".join(lines[start_index:end_index])
+    return ", ".join(
+        line
+        for line in lines[start_index:end_index]
+        if not line.startswith("pant")
+    )
 
 
-def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
-    # message_prefix = (
-    #     "Lag et JSON-datasett fra følgende matvarer. Inkluder matvare, "
-    #     "antall (standard=1), vekt (standard=N/A) og kategori (kjøleskap/"
-    #     "tørrvare/fryser). Ignorer pris. Rett opp i skrivefeil og generaliser "
-    #     "navnet på matvaren."
-    # )
+def make_gpt_request(image_path: str) -> None:
     message_prefix = (
         "Lag et JSON-datasett fra følgende matvarer. Svaret skal være på "
         "formatet {'matvare': {'antall': int, 'vekt': str, 'kategori': str}, "
@@ -78,7 +77,20 @@ def make_gpt_request(image_path: str) -> list[dict[str, str | int]]:
 
     result = completion.choices[0].message.content  # type: ignore
     result = ast.literal_eval(result[result.find("{") : result.rfind("}") + 1])
-    return result
+    dump_gpt_request(result)
+
+
+def dump_gpt_request(new_articles: dict[str, str | int]) -> None:
+    with open("src/db/articles.json", "r", encoding="utf-8") as file:
+        articles = json.load(file)
+
+    articles.update(new_articles)
+    _write_to_json(articles)
+
+
+def _write_to_json(articles: dict[str, str | int]) -> None:
+    with open("src/db/articles.json", "w", encoding="utf-8") as file:
+        json.dump(articles, file)
 
 
 def main() -> None:
@@ -94,6 +106,7 @@ def main() -> None:
             number=1,
         )
     )
+    _write_to_json({})
 
 
 if __name__ == "__main__":
