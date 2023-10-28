@@ -11,6 +11,7 @@ const STORE_DICT = {
   
 function exportImageText(imagePath) {
     // TODO: Replace with actual image processing (KASPER)
+    const completeImagePath = "src/receipts/" + imagePath;
     return "Simulated image text from " + imagePath;
 }
   
@@ -41,8 +42,8 @@ async function makeGPTRequest(imagePath) {
 }
 
 function makeGPTPrompt(imagePath) {
-    const lines = exportImageText(imagePath).split("\n");
-    let store = lines[0].toLowerCase();
+    const lines = exportImageText(imagePath).toLowerCase().split("\n");
+    let store = lines[0];
     
     if (store.includes("extra")) {
         store = "coop extra";
@@ -78,5 +79,5 @@ function makeGPTPrompt(imagePath) {
     return result.join(", ");
 }
 
-const imagePath = "src/receipts/rema_1000.jpg";
+const imagePath = "rema_1000.jpg";
 makeGPTRequest(imagePath);
