@@ -66,20 +66,21 @@ def make_gpt_request(image_path: str) -> None:
         "opp i skrivefeil og generaliser navnet på matvaren."
     )
     prompt = _make_gpt_prompt(image_path)
+    openai.api_key = "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"
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": f"{message_prefix}:\n{prompt}"}],
         temperature=0.0,
     )
-    result_str = completion.choices[0].message.content
+    result_str = completion.choices[0].message.content  # type: ignore
     result = ast.literal_eval(
         result_str[result_str.find("{") : result_str.rfind("}") + 1]
     )
-    dump_gpt_request(result)
+    _dump_gpt_request(result)
 
 
-def dump_gpt_request(new_articles: dict[str, str | int]) -> None:
-    with open("src/db/articles.json", "r", encoding="utf-8") as file:
+def _dump_gpt_request(new_articles: dict[str, str | int]) -> None:
+    with open("src/db/articles.json", encoding="utf-8") as file:
         articles = json.load(file)
 
     articles.update(new_articles)
@@ -95,12 +96,12 @@ def main() -> None:
     _write_to_json({})
     test_receipts = {
         "rema": "rema_1000.jpg",
-        "obs": "coop_obs.jpeg",
+        # "obs": "coop_obs.jpeg",
         "extra": "coop_extra.jpg",
     }
     print(
         timeit.timeit(
-            "make_gpt_request(test_receipts['extra'])",
+            "for value in test_receipts.values():make_gpt_request(value)",
             globals=globals() | locals(),
             number=1,
         )

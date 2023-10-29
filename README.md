@@ -4,7 +4,7 @@ This is a Python application that uses pytesseract to extract text from a receip
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/your-username/FoodManagerOCR.git`
+1. Clone the repository: `git clone https://github.com/perhenrikgithub/reciept-ocr-backend.git`
 2. Install the required packages: `pip install -r requirements.txt`
 
 ## Usage
