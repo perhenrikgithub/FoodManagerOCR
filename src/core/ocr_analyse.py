@@ -1,6 +1,5 @@
 import ast
 import json
-import timeit
 from typing import NamedTuple
 import pytesseract
 import openai
@@ -95,19 +94,14 @@ def _write_to_json(articles: dict[str, str | int]) -> None:
 
 
 def main() -> None:
-    _write_to_json({})
+    _write_to_json({})  # Reset articles.json
     test_receipts = {
         "rema": "rema_1000.jpg",
         # "obs": "coop_obs.jpeg",
         "extra": "coop_extra.jpg",
     }
-    print(
-        timeit.timeit(
-            "for value in test_receipts.values():make_gpt_request(value)",
-            globals=globals() | locals(),
-            number=1,
-        )
-    )
+    for value in test_receipts.values():
+        print(make_gpt_request(value))
 
 
 if __name__ == "__main__":

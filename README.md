@@ -5,13 +5,13 @@ This is a Python application that uses pytesseract to extract text from a receip
 ## Installation
 
 1. Clone the repository: `git clone https://github.com/perhenrikgithub/reciept-ocr-backend.git`
-2. Install the required packages: `pip install -r requirements.txt`
+2. Install the required packages: `pip3 install -r requirements.txt`
 
 ## Usage
 
 1. Place the receipt image in the `src/receipts` folder.
 2. Run the `src/core/ocr_analyse.py` script: `python3 src/core/ocr_analyse.py`
-3. The extracted text will be saved in a JSON file in the `src/db` folder.
+3. The extracted text will be saved in a JSON file in the `src/db` folder named `articles.json`.
 
 ## Contributing
 
